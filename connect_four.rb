@@ -15,22 +15,29 @@ class ConnectFour
   
   def game
     player_number = 1
-    win_indicator = 0
-    until win_indicator == 1
+    game_end_indicator = 0
+    until game_end_indicator > 0
       show_board
       puts "*** #{current_player(player_number).name}, which column will you drop into? ***"
       input = gets.chomp
       check_input(input)
       drop_marker(input, player_number)
       if win?(player_number)
-        win_indicator = 1
+        game_end_indicator = 1
+      elsif board_full?
+        game_end_indicator = 2
       else
         player_number = switch_player(player_number)
       end     
     end
-    show_board
-    puts "*** #{current_player(player_number).name} wins! Play again? ***"
-    play_again?
+    if game_end_indicator == 1
+      show_board
+      puts "*** #{current_player(player_number).name} wins! Play again? ***"
+      play_again?
+    else
+      puts "*** The game is a draw! Play again? ***"
+      play_again?
+    end
   end
   
   def check_input(input)
@@ -65,8 +72,12 @@ class ConnectFour
     player_number == 1 ? 2 : 1
   end
   
+  def board_full?
+    @board.flatten.!include? "_" ? true : false
+  end
+  
   def win?(player_number)
-    # join elements into a string, then check for 4 of the current player's marker
+    # join board elements into a string, then check for 4 of the current player's marker
     winning_string = ""
     4.times { winning_string << current_player(player_number).marker }
     if (check_columns(winning_string, 7, @board) ||
@@ -84,6 +95,7 @@ class ConnectFour
   end
   
   def check_rows(string, number_of_rows, board, row_counter = 0)
+    #taking 'board' as a variable allows for checking for diagonals (below) easier
     if row_counter > number_of_rows - 1
       false
     elsif board[row_counter].join.include? string.to_s
@@ -96,6 +108,8 @@ class ConnectFour
   end
   
   def check_diagonals(string)
+    #here we create a new 'diagonal_board' array that takes all of the cells in the original board
+    #that can make a diagonal win
     diagonal_board = [
       @board[0].slice(0..3),
       @board[1].slice(0..4),
@@ -104,10 +118,17 @@ class ConnectFour
       @board[4].slice(2..6),
       @board[5].slice(3..6)
     ]
+    
+    #then, we shift the elements in the first and second rows TO THE RIGHT, using unshift, by 2 and 1, respectively
     2.times { diagonal_board[0].unshift("_") }
     diagonal_board[1].unshift("_")
+    
+    #next, append 1 and 2 empty cells to the fifth and sixth rows, respectively
     diagonal_board[4] << "_"
     2.times { diagonal_board[5] << "_" }
+    
+    #now, checking for diagonals amounts to checking rows and columns in the 'diagonal_board' array, 
+    #which is now a 6-element array, whose elements each contain 6 elements
     if check_rows(string, 6, diagonal_board, row_counter = 0) 
       true
     else 

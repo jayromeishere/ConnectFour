@@ -10,7 +10,7 @@ class ConnectFour
   end
   
   def show_board
-    @board.reverse.each { |row| puts row.join }
+    @board.reverse.each { |row| puts row.join(" ") }
   end
   
   def game
@@ -73,7 +73,12 @@ class ConnectFour
   end
   
   def board_full?
-    @board.flatten.!include? "_" ? true : false
+    flat_board = @board.flatten
+    !include?(flat_board,"_") ? true : false
+  end
+  
+  def include?(array, element)
+    array.include? element
   end
   
   def win?(player_number)
